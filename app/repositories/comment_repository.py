@@ -1,30 +1,35 @@
-from app.models.domain import Comment
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.db import CommentDB
 
 class CommentRepository:
-    def __init__(self) -> None:
-        self._comments: dict[int, Comment] = {}
-        self._counter: int = 1
+    def __init__(self, db: AsyncSession) -> None:
+        self.db = db
 
-    def create(self, body: str, author_name: str, post_id: int) -> Comment:
-        comment = Comment(
-            id=self._counter,
+    async def create(self, body: str, author_name: str, post_id: int) -> CommentDB:
+        comment = CommentDB(
             body=body,
             author_name=author_name,
             post_id=post_id
         )
 
-        self._comments[self._counter] = comment
-        self._counter += 1
+        self.db.add(comment)
+        await self.db.flush()
+        await self.db.refresh(comment)
 
         return comment
 
-    def get_by_post(self, post_id: int) -> list[Comment]:
-        comments = [comment for comment in self._comments.values() if comment.post_id == post_id]
-        return comments
+    async def get_by_post(self, post_id: int) -> list[CommentDB]:
+        result = await self.db.execute(select(CommentDB).where(CommentDB.post_id == post_id))
+        return list(result.scalars().all())
 
-    def delete(self, comment_id: int) -> bool:
-        if comment_id in self._comments:
-            del self._comments[comment_id]
-            return True
+    async def delete(self, comment_id: int) -> bool:
+        result = await self.db.execute(select(CommentDB).where(CommentDB.id == comment_id))
+        comment = result.scalar_one_or_none()
 
-        return False
+        if not comment:
+            return False
+
+        await self.db.delete(comment)
+        return True

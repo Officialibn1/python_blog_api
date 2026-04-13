@@ -1,69 +1,79 @@
 import re
-from app.models.domain import Category, Tag
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from app.models.db import CategoryDB, TagDB
 
 class CategoryRepository:
-    def __init__(self) -> None:
-        self._categories: dict[int, Category] = {}
-        self._counter: int = 1
+    def __init__(self, db: AsyncSession) -> None:
+        self.db = db
 
     def _sluggify(self, name: str) -> str:
         return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
 
-    def create(self, name: str) -> Category:
-        category = Category(
-            id=self._counter,
+    async def create(self, name: str) -> CategoryDB:
+        category = CategoryDB(
             name=name,
             slug=self._sluggify(name)
         )
-
-        self._categories[self._counter] = category
-        self._counter += 1
-
+        self.db.add(category)
+        await self.db.flush()
+        await self.db.refresh(category)
         return category
 
-    def get_by_id(self, category_id: int) -> Category | None:
-        return self._categories.get(category_id)
+    async def get_by_id(self, category_id: int) -> CategoryDB | None:
+        result = await self.db.execute(
+            select(CategoryDB).where(CategoryDB.id == category_id)
+        )
+        return result.scalar_one_or_none()
 
-    def get_all(self) -> list[Category]:
-        return list(self._categories.values())
+    async def get_all(self) -> list[CategoryDB]:
+        result = await self.db.execute(
+            select(CategoryDB)
+        )
+        return list(result.scalars().all())
 
-    def delete(self, category_id: int) -> bool:
-        if category_id in self._categories:
-            del self._categories[category_id]
-            return True
+    async def delete(self, category_id: int) -> bool:
+        category = await self.get_by_id(category_id)
+        if not category:
+            return False
 
-        return False
+        await self.db.delete(category)
+        return True
+
 
 
 class TagRepository:
-    def __init__(self) -> None:
-        self._tags: dict[int, Tag] = {}
-        self._counter: int = 1
+    def __init__(self, db: AsyncSession) -> None:
+        self.db = db
 
     def _sluggify(self, name: str) -> str:
         return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
 
-    def create(self, name: str) -> Tag:
-        tag = Tag(
-            id=self._counter,
+    async def create(self, name: str) -> TagDB:
+        tag = TagDB(
             name=name,
             slug=self._sluggify(name)
         )
 
-        self._tags[self._counter] = tag
-        self._counter += 1
-
+        self.db.add(tag)
+        await self.db.flush()
+        await self.db.refresh(tag)
         return tag
 
-    def get_by_id(self, tag_id: int) -> Tag | None:
-        return self._tags.get(tag_id)
+    async def get_by_id(self, tag_id: int) -> TagDB | None:
+        result = await self.db.execute(select(TagDB).where(TagDB.id == tag_id))
 
-    def get_all(self) -> list[Tag]:
-        return list(self._tags.values())
+        return result.scalar_one_or_none()
 
-    def delete(self, tag_id: int) -> bool:
-        if tag_id in self._tags:
-            del self._tags[tag_id]
-            return True
+    async def get_all(self) -> list[TagDB]:
+        result = await self.db.execute(select(TagDB))
 
-        return False
+        return list(result.scalars().all())
+
+    async def delete(self, tag_id: int) -> bool:
+        tag = self.get_by_id(tag_id)
+        if not tag:
+            return False
+
+        await self.db.delete(tag)
+        return True

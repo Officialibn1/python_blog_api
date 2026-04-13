@@ -1,4 +1,6 @@
-from functools import lru_cache
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.core.database import get_db
 from app.repositories.post_repository import PostRepository
 from app.repositories.category_repository import CategoryRepository, TagRepository
 from app.repositories.comment_repository import CommentRepository
@@ -7,34 +9,34 @@ from app.services.comments_service import CommentService
 from app.services.post_service import PostService
 
 # Singletons - To maintain one instance for the applications lifecycle
-@lru_cache
-def get_post_repo() -> PostRepository:
-    return PostRepository()
+def get_post_repo(db: AsyncSession = Depends(get_db)) -> PostRepository:
+    return PostRepository(db)
 
-@lru_cache
-def get_comment_repo() -> CommentRepository:
-    return CommentRepository()
+def get_comment_repo(db: AsyncSession = Depends(get_db)) -> CommentRepository:
+    return CommentRepository(db)
 
-@lru_cache
-def get_category_repo() -> CategoryRepository:
-    return CategoryRepository()
+def get_category_repo(db: AsyncSession = Depends(get_db)) -> CategoryRepository:
+    return CategoryRepository(db)
 
-@lru_cache
-def get_tag_repo() -> TagRepository:
-    return TagRepository()
+def get_tag_repo(db: AsyncSession = Depends(get_db)) -> TagRepository:
+    return TagRepository(db)
 
-def get_post_service() -> PostService:
+def get_post_service(
+    post_repo: PostRepository = Depends(get_post_repo),
+    category_repo: CategoryRepository = Depends(get_category_repo),
+    tag_repo: TagRepository = Depends(get_tag_repo)
+) -> PostService:
     return PostService(
-        post_repo=get_post_repo(),
-        category_repo=get_category_repo(),
-        tag_repo=get_tag_repo()
+        post_repo=post_repo,
+        category_repo=category_repo,
+        tag_repo=tag_repo
     )
 
-def get_category_service() -> CategoryService:
-    return CategoryService(category_repo=get_category_repo())
+def get_category_service(category_repo: CategoryRepository = Depends(get_category_repo)) -> CategoryService:
+    return CategoryService(category_repo)
 
-def get_tag_service() -> TagService:
-    return TagService(tag_repo=get_tag_repo())
+def get_tag_service(tag_repo: TagRepository = Depends(get_tag_repo)) -> TagService:
+    return TagService(tag_repo)
 
-def get_comment_service() -> CommentService:
-    return CommentService(comment_repo=get_comment_repo())
+def get_comment_service(comment_repo: CommentRepository = Depends(get_comment_repo)) -> CommentService:
+    return CommentService(comment_repo)
