@@ -1,6 +1,9 @@
 import re
-from sqlalchemy.ext.asyncio import AsyncSession
+from enum import EnumType
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
+from app.core.exceptions import ConflictException, NotFoundException
 from app.models.db import CategoryDB, TagDB
 
 class CategoryRepository:
@@ -32,14 +35,18 @@ class CategoryRepository:
         )
         return list(result.scalars().all())
 
-    async def delete(self, category_id: int) -> bool:
+    async def delete(self, category_id: int) -> None:
         category = await self.get_by_id(category_id)
         if not category:
-            return False
+            raise NotFoundException(f"Category with this id {category_id} not found.")
 
-        await self.db.delete(category)
-        return True
+        try:
+            await self.db.delete(category)
+            await self.db.flush()
 
+        except IntegrityError:
+            await self.db.rollback()
+            raise ConflictException(f"Category with this id {category_id} is linked to a post and cannot be deleted.")
 
 
 class TagRepository:
@@ -70,10 +77,14 @@ class TagRepository:
 
         return list(result.scalars().all())
 
-    async def delete(self, tag_id: int) -> bool:
-        tag = self.get_by_id(tag_id)
+    async def delete(self, tag_id: int) -> None:
+        tag = await self.get_by_id(tag_id)
         if not tag:
-            return False
+            raise NotFoundException(f"Tag with this id {tag_id} not found")
 
-        await self.db.delete(tag)
-        return True
+        try:
+            await self.db.delete(tag)
+            await self.db.flush()
+        except IntegrityError:
+            await self.db.rollback()
+            raise ConflictException(f"Tag with this id {tag_id} is in use and cannot be deleted.")

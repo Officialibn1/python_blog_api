@@ -6,15 +6,14 @@ from app.core.dependencies import get_post_service
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
-
 @router.get("/", response_model=PaginatedResponse[PostResponse])
-def get_posts(
+async def get_posts(
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Total items per page"),
     published_only: bool = Query(False, description="Show only publised posts"),
     service: PostService = Depends(get_post_service)
 ):
-    posts, total = service.list_posts(page=page, size=size, published_only=published_only)
+    posts, total = await service.list_posts(page=page, size=size, published_only=published_only)
     return PaginatedResponse(
         items=posts,
         total=total,
@@ -24,17 +23,17 @@ def get_posts(
     )
 
 @router.post("/", response_model=PostResponse, status_code=status.HTTP_201_CREATED)
-def create_post(data: PostCreate, service: PostService = Depends(get_post_service)):
-    return service.create_post(data)
+async def create_post(data: PostCreate, service: PostService = Depends(get_post_service)):
+    return await service.create_post(data)
 
 @router.get("/{post_id}", response_model=PostResponse)
-def get_post(post_id: int, service: PostService = Depends(get_post_service)):
-    return service.get_post(post_id)
+async def get_post(post_id: int, service: PostService = Depends(get_post_service)):
+    return await service.get_post(post_id)
 
 @router.patch("/{post_id}", response_model=PostResponse)
-def update_post(post_id: int, data: PostUpdate, service: PostService = Depends(get_post_service)):
-    return service.update_post(post_id, data)
+async def update_post(post_id: int, data: PostUpdate, service: PostService = Depends(get_post_service)):
+    return await service.update_post(post_id, data)
 
 @router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(post_id: int, service: PostService = Depends(get_post_service)):
-    service.delete_post(post_id)
+async def delete_post(post_id: int, service: PostService = Depends(get_post_service)):
+    await service.delete_post(post_id)

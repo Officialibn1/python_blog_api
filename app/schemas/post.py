@@ -31,11 +31,11 @@ class PostUpdate(BaseModel):
 class PostResponse(BaseModel):
     id: int
     title: str
+    slug: str
     content: str
     category_id: int
     category: CategoryResponse
     published: bool
-    tag_ids: list[int] = []
     tags: list[TagResponse] = []
     created_at: datetime
     updated_at: Optional[datetime] = None

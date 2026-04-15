@@ -2,6 +2,14 @@ from fastapi import HTTPException, FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+class NotFoundException(Exception):
+    def __init__(self, detail: str) -> None:
+        self.detail = detail
+
+class ConflictException(Exception):
+    def __init__(self, detail: str) -> None:
+        self.detail = detail
+
 def _error_response(status_code: int, error: str, path: str) -> JSONResponse:
     """Single place that builds all the error messages in the application."""
     return JSONResponse(
@@ -36,6 +44,22 @@ def validation_exception_handler(request: Request, exc: Exception) -> JSONRespon
         path=str(request.url.path)
     )
 
+def not_found_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    assert isinstance(exc, NotFoundException)
+    return _error_response(
+        status_code=status.HTTP_404_NOT_FOUND,
+        error=exc.detail,
+        path=str(request.url.path)
+    )
+
+def conflict_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    assert isinstance(exc, ConflictException)
+    return _error_response(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        error=exc.detail,
+        path=str(request.url.path)
+    )
+
 def unhandled_exception_handler(request: Request, _: Exception) -> JSONResponse:
     """Safety net - catches any unexpected exception that slips through"""
     return _error_response(
@@ -49,3 +73,5 @@ def register_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(HTTPException, http_exception_handler)
     app.add_exception_handler(RequestValidationError, validation_exception_handler)
     app.add_exception_handler(Exception, unhandled_exception_handler)
+    app.add_exception_handler(NotFoundException, not_found_exception_handler)
+    app.add_exception_handler(ConflictException, conflict_exception_handler)

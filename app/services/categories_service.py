@@ -1,4 +1,4 @@
-from fastapi import HTTPException, status
+from app.core.exceptions import NotFoundException
 from app.repositories.category_repository import CategoryRepository, TagRepository
 from app.schemas.category import CategoryCreate
 from app.schemas.tag import TagCreate
@@ -17,7 +17,7 @@ class CategoryService:
     async def get_category(self, category_id: int) -> CategoryDB:
         category = await self.category_repo.get_by_id(category_id)
         if category is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Category with this id {category_id} not found")
+            raise NotFoundException(f"Category with this id {category_id} not found")
 
         return category
 
@@ -25,9 +25,7 @@ class CategoryService:
         return await self.category_repo.get_all()
 
     async def delete_category(self, category_id: int) -> None:
-        success = await self.category_repo.delete(category_id)
-        if not success:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Category with this id {category_id} not found")
+        await self.category_repo.delete(category_id)
 
 class TagService:
     def __init__(self, tag_repo: TagRepository) -> None:
@@ -42,7 +40,7 @@ class TagService:
     async def get_tag(self, tag_id: int) -> TagDB:
         tag = await self.tag_repo.get_by_id(tag_id)
         if tag is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Tag with this id {tag_id} not found")
+            raise NotFoundException(f"Tag with this id {tag_id} not found")
 
         return tag
 
@@ -50,6 +48,4 @@ class TagService:
         return await self.tag_repo.get_all()
 
     async def delete_tag(self, tag_id: int) -> None:
-        success = await self.tag_repo.delete(tag_id)
-        if not success:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Tag with this id {tag_id} not found")
+        await self.tag_repo.delete(tag_id)

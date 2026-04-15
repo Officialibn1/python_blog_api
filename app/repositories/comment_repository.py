@@ -1,6 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import NotFoundException
 from app.models.db import CommentDB
 
 class CommentRepository:
@@ -29,7 +30,7 @@ class CommentRepository:
         comment = result.scalar_one_or_none()
 
         if not comment:
-            return False
+            raise NotFoundException(f"Comment with this id {comment_id} not found")
 
         await self.db.delete(comment)
         return True
