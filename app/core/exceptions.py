@@ -10,6 +10,10 @@ class ConflictException(Exception):
     def __init__(self, detail: str) -> None:
         self.detail = detail
 
+class AuthenticationException(Exception):
+    def __init__(self, detail: str) -> None:
+        self.detail = detail
+
 def _error_response(status_code: int, error: str, path: str) -> JSONResponse:
     """Single place that builds all the error messages in the application."""
     return JSONResponse(
@@ -55,7 +59,15 @@ def not_found_exception_handler(request: Request, exc: Exception) -> JSONRespons
 def conflict_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     assert isinstance(exc, ConflictException)
     return _error_response(
-        status_code=status.HTTP_400_BAD_REQUEST,
+        status_code=status.HTTP_409_CONFLICT,
+        error=exc.detail,
+        path=str(request.url.path)
+    )
+
+def authentication_exception(request: Request, exc: Exception) -> JSONResponse:
+    assert isinstance(exc, AuthenticationException)
+    return _error_response(
+        status_code=status.HTTP_401_UNAUTHORIZED,
         error=exc.detail,
         path=str(request.url.path)
     )
@@ -75,3 +87,4 @@ def register_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(Exception, unhandled_exception_handler)
     app.add_exception_handler(NotFoundException, not_found_exception_handler)
     app.add_exception_handler(ConflictException, conflict_exception_handler)
+    app.add_exception_handler(AuthenticationException, authentication_exception)

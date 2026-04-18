@@ -4,7 +4,6 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import NotFoundException
-
 from app.models.db import PostDB
 
 class PostRepository:
@@ -84,10 +83,9 @@ class PostRepository:
 
         return post
 
-    async def delete(self, post_id: int) -> bool:
+    async def delete(self, post_id: int) -> None:
         post = await self.get_by_id(post_id)
         if not post:
             raise NotFoundException(f"Post with this id {post_id} not found")
 
         await self.db.delete(post)
-        return True
