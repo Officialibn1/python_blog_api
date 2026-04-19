@@ -1,9 +1,9 @@
 import uuid
 from enum import Enum
-from jose import jwt
+from jose import jwt, JWTError
 from datetime import datetime, timezone, timedelta
 from passlib.context import CryptContext # type: ignore[call-arg]
-
+from app.core.exceptions import AuthenticationException
 from app.core.config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -22,6 +22,11 @@ def verify_password(raw_password: str, hashed_password: str) -> bool:
 
 
 def create_jwt_token(data: dict, type: TokenType) -> str:
+    """
+    Accepts two arguments, data which is the user object and token type, which is the type of token
+    to generate, it then generates the token using the data payload and other related data, then it
+    returns the token string
+    """
     to_encode = data.copy()
     expiry = (
         timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRY_MINUTES)
@@ -33,7 +38,16 @@ def create_jwt_token(data: dict, type: TokenType) -> str:
         "exp": datetime.now(timezone.utc) + expiry,
         "iat": datetime.now(timezone.utc),
         "jti": str(uuid.uuid4()),
-        "type": "access" if type == TokenType.ACCESS else "refresh"
+        "token_type": "access" if type == TokenType.ACCESS else "refresh"
     })
 
     return jwt.encode(to_encode, settings.JWT_SECRET_KEY, settings.JWT_ALGORITHM)
+
+def decode_jwt_token(token: str) -> dict:
+    """
+    Decodes a JWT token and returns the payload as a dictionary.
+    """
+    try:
+        return jwt.decode(token, settings.JWT_SECRET_KEY, settings.JWT_ALGORITHM)
+    except JWTError:
+        raise AuthenticationException("Invalid or expired token")

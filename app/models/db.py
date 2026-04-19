@@ -53,7 +53,7 @@ class PostDB(Base):
 
     category: Mapped["CategoryDB"] = relationship("CategoryDB", back_populates="posts")
     tags: Mapped[list["TagDB"]] = relationship("TagDB", secondary=post_tags, back_populates="posts")
-    comments: Mapped[list["CommentDB"]] = relationship("CommentDB", back_populates="posts")
+    comments: Mapped[list["CommentDB"]] = relationship("CommentDB", back_populates="post")
 
 
 class CommentDB(Base):

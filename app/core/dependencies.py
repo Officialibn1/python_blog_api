@@ -1,14 +1,25 @@
 from fastapi import Depends
+from fastapi.security import OAuth2PasswordBearer, HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
+from app.core.security import decode_jwt_token
+from app.repositories.user_repository import UserRepository
 from app.repositories.post_repository import PostRepository
 from app.repositories.category_repository import CategoryRepository, TagRepository
 from app.repositories.comment_repository import CommentRepository
 from app.services.categories_service import CategoryService, TagService
 from app.services.comments_service import CommentService
 from app.services.post_service import PostService
+from app.services.user_service import UserService
+from app.core.exceptions import AuthenticationException
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+bearer_scheme = HTTPBearer()
 
 # Singletons - To maintain one instance for the applications lifecycle
+def get_user_repo(db: AsyncSession = Depends(get_db)) -> UserRepository:
+    return UserRepository(db)
+
 def get_post_repo(db: AsyncSession = Depends(get_db)) -> PostRepository:
     return PostRepository(db)
 
@@ -20,6 +31,17 @@ def get_category_repo(db: AsyncSession = Depends(get_db)) -> CategoryRepository:
 
 def get_tag_repo(db: AsyncSession = Depends(get_db)) -> TagRepository:
     return TagRepository(db)
+
+def get_user_service(user_repo: UserRepository = Depends(get_user_repo)) -> UserService:
+    return UserService(user_repo)
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)) -> dict:
+    token = credentials.credentials
+    data = decode_jwt_token(token)
+    if data.get("token_type") != "access":
+        raise AuthenticationException("Invalid token type")
+
+    return data
 
 def get_post_service(
     post_repo: PostRepository = Depends(get_post_repo),

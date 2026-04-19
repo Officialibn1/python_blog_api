@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Query, status
 from app.schemas.post import PostCreate, PostUpdate, PostResponse
 from app.schemas.common import PaginatedResponse
 from app.services.post_service import PostService
-from app.core.dependencies import get_post_service
+from app.core.dependencies import get_post_service, get_current_user
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
@@ -23,17 +23,32 @@ async def get_posts(
     )
 
 @router.post("/", response_model=PostResponse, status_code=status.HTTP_201_CREATED)
-async def create_post(data: PostCreate, service: PostService = Depends(get_post_service)):
+async def create_post(
+    data: PostCreate,
+    service: PostService = Depends(get_post_service),
+    current_user: dict = Depends(get_current_user)
+):
     return await service.create_post(data)
 
 @router.get("/{post_id}", response_model=PostResponse)
-async def get_post(post_id: int, service: PostService = Depends(get_post_service)):
+async def get_post(
+    post_id: int,
+    service: PostService = Depends(get_post_service),
+):
     return await service.get_post(post_id)
 
 @router.patch("/{post_id}", response_model=PostResponse)
-async def update_post(post_id: int, data: PostUpdate, service: PostService = Depends(get_post_service)):
+async def update_post(
+    post_id: int, data: PostUpdate,
+    service: PostService = Depends(get_post_service),
+    current_user: dict = Depends(get_current_user)
+):
     return await service.update_post(post_id, data)
 
 @router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_post(post_id: int, service: PostService = Depends(get_post_service)):
+async def delete_post(
+    post_id: int,
+    service: PostService = Depends(get_post_service),
+    current_user: dict = Depends(get_current_user)
+):
     await service.delete_post(post_id)
