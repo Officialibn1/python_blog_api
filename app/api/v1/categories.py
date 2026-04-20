@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status, Depends
 from app.schemas.category import CategoryCreate, CategoryResponse
 from app.services.categories_service import CategoryService
-from app.core.dependencies import get_category_service, get_current_user
+from app.core.dependencies import get_category_service, require_admin
 
 router = APIRouter(prefix="/categories", tags=["Categories"])
 
@@ -9,7 +9,7 @@ router = APIRouter(prefix="/categories", tags=["Categories"])
 async def create_category(
     data: CategoryCreate,
     service: CategoryService = Depends(get_category_service),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_admin)
 ):
    return await service.create_category(data)
 
@@ -25,6 +25,6 @@ async def get_category(category_id: int, service: CategoryService = Depends(get_
 async def delete_category(
     category_id: int,
     service: CategoryService = Depends(get_category_service),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_admin)
 ):
     await service.delete_category(category_id)

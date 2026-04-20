@@ -11,7 +11,7 @@ from app.services.categories_service import CategoryService, TagService
 from app.services.comments_service import CommentService
 from app.services.post_service import PostService
 from app.services.user_service import UserService
-from app.core.exceptions import AuthenticationException
+from app.core.exceptions import AuthenticationException, AuthorizationException
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 bearer_scheme = HTTPBearer()
@@ -35,14 +35,6 @@ def get_tag_repo(db: AsyncSession = Depends(get_db)) -> TagRepository:
 def get_user_service(user_repo: UserRepository = Depends(get_user_repo)) -> UserService:
     return UserService(user_repo)
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)) -> dict:
-    token = credentials.credentials
-    data = decode_jwt_token(token)
-    if data.get("token_type") != "access":
-        raise AuthenticationException("Invalid token type")
-
-    return data
-
 def get_post_service(
     post_repo: PostRepository = Depends(get_post_repo),
     category_repo: CategoryRepository = Depends(get_category_repo),
@@ -62,3 +54,19 @@ def get_tag_service(tag_repo: TagRepository = Depends(get_tag_repo)) -> TagServi
 
 def get_comment_service(comment_repo: CommentRepository = Depends(get_comment_repo)) -> CommentService:
     return CommentService(comment_repo)
+
+
+# Autorization and Authentication related dependencies
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)) -> dict:
+    token = credentials.credentials
+    data = decode_jwt_token(token)
+    if data.get("token_type") != "access":
+        raise AuthenticationException("Invalid token type")
+
+    return data
+
+async def require_admin(current_user: dict = Depends(get_current_user)) -> dict:
+    if current_user.get("role") != "admin":
+        raise AuthorizationException("Admin access required")
+
+    return current_user

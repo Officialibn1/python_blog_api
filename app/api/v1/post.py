@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Query, status
 from app.schemas.post import PostCreate, PostUpdate, PostResponse
 from app.schemas.common import PaginatedResponse
 from app.services.post_service import PostService
-from app.core.dependencies import get_post_service, get_current_user
+from app.core.dependencies import get_post_service, require_admin
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
@@ -26,7 +26,7 @@ async def get_posts(
 async def create_post(
     data: PostCreate,
     service: PostService = Depends(get_post_service),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_admin)
 ):
     return await service.create_post(data)
 
@@ -41,7 +41,7 @@ async def get_post(
 async def update_post(
     post_id: int, data: PostUpdate,
     service: PostService = Depends(get_post_service),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_admin)
 ):
     return await service.update_post(post_id, data)
 
@@ -49,6 +49,6 @@ async def update_post(
 async def delete_post(
     post_id: int,
     service: PostService = Depends(get_post_service),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_admin)
 ):
     await service.delete_post(post_id)

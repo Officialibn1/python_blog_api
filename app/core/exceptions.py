@@ -14,6 +14,10 @@ class AuthenticationException(Exception):
     def __init__(self, detail: str) -> None:
         self.detail = detail
 
+class AuthorizationException(Exception):
+    def __init__(self, detail: str) -> None:
+        self.detail = detail
+
 def _error_response(status_code: int, error: str, path: str) -> JSONResponse:
     """Single place that builds all the error messages in the application."""
     return JSONResponse(
@@ -72,6 +76,14 @@ def authentication_exception(request: Request, exc: Exception) -> JSONResponse:
         path=str(request.url.path)
     )
 
+def authorization_exception(request: Request, exc: Exception) -> JSONResponse:
+    assert isinstance(exc, AuthorizationException)
+    return _error_response(
+        status_code=status.HTTP_403_FORBIDDEN,
+        error=exc.detail,
+        path=str(request.url.path)
+    )
+
 def unhandled_exception_handler(request: Request, _: Exception) -> JSONResponse:
     """Safety net - catches any unexpected exception that slips through"""
     return _error_response(
@@ -88,3 +100,4 @@ def register_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(NotFoundException, not_found_exception_handler)
     app.add_exception_handler(ConflictException, conflict_exception_handler)
     app.add_exception_handler(AuthenticationException, authentication_exception)
+    app.add_exception_handler(AuthorizationException, authorization_exception)

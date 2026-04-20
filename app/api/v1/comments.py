@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status
 from app.services.comments_service import CommentService
 from app.schemas.comment import CommentCreate, CommentResponse
-from app.core.dependencies import get_comment_service, get_post_service, get_current_user
+from app.core.dependencies import get_comment_service, get_post_service, require_admin, get_current_user
 from app.services.post_service import PostService
 
 router = APIRouter(prefix="/comments", tags=["Comments"])
@@ -29,6 +29,6 @@ async def get_comments(
 async def delete_comment(
     comment_id: int,
     service: CommentService = Depends(get_comment_service),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_admin)
 ):
     return await service.delete_comment(comment_id)
