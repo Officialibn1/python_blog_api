@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from sqlalchemy import select, func
+from sqlalchemy import select, func, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import NotFoundException
 from app.models.db import UserDB
@@ -43,7 +43,7 @@ class UserRepository:
 
 
     async def get_all(self, skip: int, limit: int) -> tuple[list[UserDB], int]:
-        """Fetching all users on the database using skip and limit for pagination"""
+        """Fetching all users on the database using page and limit for pagination"""
         query = select(UserDB)
         count_result = await self.db.execute(
             select(func.count()).select_from(query.subquery())
@@ -63,6 +63,17 @@ class UserRepository:
 
         user.updated_at = datetime.now(timezone.utc)
 
+        await self.db.flush()
+        await self.db.refresh(user)
+
+        return user
+
+    async def activate_or_deactivate_user(self, user_id: int) -> UserDB:
+        user = await self.get_by_id(user_id)
+        if not user:
+            raise NotFoundException("User not found")
+
+        setattr(user, "is_active", False if user.is_active else True)
         await self.db.flush()
         await self.db.refresh(user)
 

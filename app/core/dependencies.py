@@ -70,3 +70,9 @@ async def require_admin(current_user: dict = Depends(get_current_user)) -> dict:
         raise AuthorizationException("Admin access required")
 
     return current_user
+
+async def can_create_post(current_user: dict = Depends(get_current_user)) -> dict:
+    if current_user.get("role") not in ["admin", "author"]:
+        raise AuthorizationException("Insufficent access to perform this action")
+
+    return current_user

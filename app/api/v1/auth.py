@@ -6,7 +6,7 @@ from app.schemas.user import UserCreate, UserResponse, TokenResponse, UserLogin
 from app.core.security import create_jwt_token, decode_jwt_token, TokenType
 from app.core.limiter import limiter
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter(prefix="/auth", tags=["Auth"])
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 @limiter.limit(limit_value='10/minute', per_method=True, error_message="Your browser is making requests at abnormal rates")

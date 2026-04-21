@@ -1,0 +1,158 @@
+{
+  "items": [
+    {
+      "id": 3,
+      "title": "Middle East",
+      "slug": "middle-east",
+      "content": "The Middle East War.",
+      "author_id": null,
+      "category_id": 1,
+      "category": {
+        "name": "War",
+        "id": 1,
+        "slug": "war"
+      },
+      "published": false,
+      "tags": [
+        {
+          "name": "Middle East",
+          "id": 2,
+          "slug": "middle-east"
+        }
+      ],
+      "created_at": "2026-04-13T10:10:58.668534Z",
+      "updated_at": null
+    },
+    {
+      "id": 6,
+      "title": "Us, Israel & Iran War",
+      "slug": "us-israel-iran-war",
+      "content": "A Temporary Siezefire Of Two Weeks Have Been Agreed Upon By The Us And Iran, Although Israel Have Not Stopped The Bombing Of Southern Lebanon.",
+      "author_id": null,
+      "category_id": 1,
+      "category": {
+        "name": "War",
+        "id": 1,
+        "slug": "war"
+      },
+      "published": true,
+      "tags": [
+        {
+          "name": "War",
+          "id": 1,
+          "slug": "war"
+        },
+        {
+          "name": "Middle East",
+          "id": 2,
+          "slug": "middle-east"
+        },
+        {
+          "name": "Us",
+          "id": 3,
+          "slug": "us"
+        },
+        {
+          "name": "Iran",
+          "id": 4,
+          "slug": "iran"
+        },
+        {
+          "name": "Israel",
+          "id": 5,
+          "slug": "israel"
+        }
+      ],
+      "created_at": "2026-04-13T10:19:45.192256Z",
+      "updated_at": null
+    },
+    {
+      "id": 7,
+      "title": "How To Fix Fastapi Authorization Mismatch",
+      "slug": "how-to-fix-fastapi-authorization-mismatch",
+      "content": "Just Fix It... Lol",
+      "author_id": null,
+      "category_id": 1,
+      "category": {
+        "name": "War",
+        "id": 1,
+        "slug": "war"
+      },
+      "published": false,
+      "tags": [
+        {
+          "name": "War",
+          "id": 1,
+          "slug": "war"
+        },
+        {
+          "name": "Middle East",
+          "id": 2,
+          "slug": "middle-east"
+        }
+      ],
+      "created_at": "2026-04-19T19:37:17.061533Z",
+      "updated_at": null
+    },
+    {
+      "id": 9,
+      "title": "Diy Fastapi Authorization",
+      "slug": "diy-fastapi-authorization",
+      "content": "Just Do It... Lol",
+      "author_id": null,
+      "category_id": 1,
+      "category": {
+        "name": "War",
+        "id": 1,
+        "slug": "war"
+      },
+      "published": true,
+      "tags": [
+        {
+          "name": "War",
+          "id": 1,
+          "slug": "war"
+        },
+        {
+          "name": "Middle East",
+          "id": 2,
+          "slug": "middle-east"
+        }
+      ],
+      "created_at": "2026-04-19T19:39:14.729217Z",
+      "updated_at": null
+    },
+    {
+      "id": 10,
+      "title": "Something ",
+      "slug": "diy-fastapi-rbac",
+      "content": "Omo na lie",
+      "author_id": 2,
+      "category_id": 1,
+      "category": {
+        "name": "War",
+        "id": 1,
+        "slug": "war"
+      },
+      "published": true,
+      "tags": [
+        {
+          "name": "War",
+          "id": 1,
+          "slug": "war"
+        },
+        {
+          "name": "Middle East",
+          "id": 2,
+          "slug": "middle-east"
+        }
+      ],
+      "created_at": "2026-04-20T18:52:02.188536Z",
+      "updated_at": "2026-04-21T06:10:40.932492Z"
+    }
+  ],
+  "total": 5,
+  "page": 1,
+  "size": 10,
+  "pages": 1
+}

@@ -14,7 +14,11 @@ class UserLogin(BaseModel):
 class UserCreate(UserBase):
     password: PasswordString
 
-class UserUpdate(UserBase):
+class AdminUpdateUser(BaseModel):
+    role: Optional[NonBlankString]
+    is_active: Optional[bool]
+
+class UserUpdateUser(UserBase):
     pass
 
 class UserResponse(UserBase):

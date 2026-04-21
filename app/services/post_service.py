@@ -2,7 +2,7 @@ from app.repositories.post_repository import PostRepository
 from app.repositories.category_repository import CategoryRepository, TagRepository
 from app.schemas.post import PostCreate, PostUpdate
 from app.models.db import PostDB
-from app.core.exceptions import NotFoundException
+from app.core.exceptions import NotFoundException, AuthorizationException
 
 class PostService:
     def __init__(
@@ -15,7 +15,7 @@ class PostService:
         self.category_repo = category_repo
         self.tag_repo = tag_repo
 
-    async def create_post(self, data: PostCreate) -> PostDB:
+    async def create_post(self, data: PostCreate, current_user: dict) -> PostDB:
         if not await self.category_repo.get_by_id(data.category_id):
             raise NotFoundException(f"Category with this id {data.category_id} not found")
 
@@ -31,7 +31,8 @@ class PostService:
             title=data.title,
             content=data.content,
             category_id=data.category_id,
-            published=data.published
+            published=data.published,
+            author_id=current_user["id"]
         )
 
         post.tags = tags
@@ -52,10 +53,17 @@ class PostService:
 
         return result
 
-    async def update_post(self, post_id: int, data: PostUpdate) -> PostDB:
+    async def update_post(self, post_id: int, data: PostUpdate, current_user: dict) -> PostDB:
+        post = await self.get_post(post_id)
+        if post.author_id is None or post.author_id != current_user["id"]:
+            raise AuthorizationException("You do not have permission to modify this post")
+
         updated_post = await self.post_repo.update(post_id, **data.model_dump(exclude_none=True))
 
         return updated_post
 
-    async def delete_post(self, post_id: int) -> None:
+    async def delete_post(self, post_id: int, current_user: dict) -> None:
+        post = await self.get_post(post_id)
+        if post.author_id is not None and post.author_id != current_user["id"] and current_user["role"] != "admin":
+            raise AuthorizationException("You do not have permission to delete this post")
         await self.post_repo.delete(post_id)

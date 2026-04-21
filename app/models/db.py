@@ -44,6 +44,7 @@ class PostDB(Base):
     slug: Mapped[str] = mapped_column(String(400), nullable=False, unique=True)
     content: Mapped[str] = mapped_column(Text, nullable=False)
     published: Mapped[bool] = mapped_column(Boolean, default=False)
+    author_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     category_id: Mapped[int] = mapped_column(Integer, ForeignKey("categories.id", ondelete="RESTRICT"))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -51,6 +52,7 @@ class PostDB(Base):
     )
     updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
+    author: Mapped["UserDB"] = relationship("UserDB", back_populates="posts")
     category: Mapped["CategoryDB"] = relationship("CategoryDB", back_populates="posts")
     tags: Mapped[list["TagDB"]] = relationship("TagDB", secondary=post_tags, back_populates="posts")
     comments: Mapped[list["CommentDB"]] = relationship("CommentDB", back_populates="post")
@@ -79,6 +81,7 @@ class UserDB(Base):
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[str] = mapped_column(String(50), nullable=False, default="reader")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    posts: Mapped[list["PostDB"]] = relationship("PostDB", back_populates="author")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc)

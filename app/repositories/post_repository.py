@@ -18,14 +18,16 @@ class PostRepository:
         title: str,
         content: str,
         category_id: int,
-        published: bool = False
+        author_id: int,
+        published: bool = False,
     ) -> PostDB:
         post = PostDB(
             title=title,
             slug=self._slugify(title),
             content=content,
             category_id=category_id,
-            published=published
+            published=published,
+            author_id=author_id
         )
 
         self.db.add(post)
@@ -64,7 +66,7 @@ class PostRepository:
             selectinload(PostDB.tags),
             selectinload(PostDB.category)
         )
-        result = await self.db.execute(query.limit(limit).offset(skip))
+        result = await self.db.execute(query.offset(skip).limit(limit))
 
         return list(result.scalars().all()), total
 

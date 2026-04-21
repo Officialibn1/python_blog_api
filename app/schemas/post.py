@@ -33,6 +33,7 @@ class PostResponse(BaseModel):
     title: str
     slug: str
     content: str
+    author_id: int | None
     category_id: int
     category: CategoryResponse
     published: bool
