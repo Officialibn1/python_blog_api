@@ -18,7 +18,7 @@ async def register_user(
     return await service.register(data)
 
 @router.post("/login", response_model=TokenResponse)
-@limiter.limit(limit_value='5/minute', per_method=True, error_message="Your browser is making requests at abnormal rates")
+@limiter.limit(limit_value='10/minute', per_method=True, error_message="Your browser is making requests at abnormal rates")
 async def user_login(
     request: Request,
     data: UserLogin,

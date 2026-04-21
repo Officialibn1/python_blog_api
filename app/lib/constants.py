@@ -1,0 +1,5 @@
+BASE_URL = "/api/v1"
+AUTH_URL = f"{BASE_URL}/auth"
+POST_URL = f"{BASE_URL}/posts"
+CATEGORY_URL = f"{BASE_URL}/categories"
+TAG_URL = f"{BASE_URL}/tags"

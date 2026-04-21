@@ -1,8 +1,10 @@
 import pytest_asyncio
+import pytest
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy import text
 from sqlalchemy.pool import NullPool
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from app.core.limiter import limiter
 
 from app.app import app
 from app.core.config import settings
@@ -15,6 +17,14 @@ TestSessionLocal = async_sessionmaker(
     class_=AsyncSession,
     expire_on_commit=False
 )
+
+@pytest.fixture(autouse=True)
+def disable_rate_limit():
+    from app.core.limiter import limiter
+    original_enabled = limiter.enabled
+    limiter.enabled = False
+    yield
+    limiter.enabled = original_enabled
 
 @pytest_asyncio.fixture(scope="session", loop_scope="session", autouse=True)
 async def setup_database():
@@ -51,3 +61,26 @@ async def client(db):
         yield ac
 
     app.dependency_overrides.clear()
+
+@pytest_asyncio.fixture
+async def admin_client(client: AsyncClient, db: AsyncSession):
+    from sqlalchemy import update
+    from app.models.db import UserDB
+
+    await client.post("/api/v1/auth/register", json={
+        "email": "admin@example.com",
+        "username": "adminuser",
+        "password": "password"
+    })
+
+    await db.execute(update(UserDB).where(UserDB.email == "admin@example.com").values(role="admin"))
+    await db.commit()
+
+    login = await client.post("/api/v1/auth/login", json={
+        "email": "admin@example.com",
+        "password": "password"
+    })
+
+    token = login.json()["access_token"]
+    client.headers["Authorization"] = f"Bearer {token}"
+    return client

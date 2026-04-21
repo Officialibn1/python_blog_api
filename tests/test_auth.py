@@ -1,9 +1,8 @@
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.lib.constants import BASE_URL, AUTH_URL
 
-BASE_URL = "/api/v1"
-AUTH_URL = f"{BASE_URL}/auth"
 
 async def test_register_success(client: AsyncClient):
     response = await client.post(f"{AUTH_URL}/register", json={
