@@ -10,4 +10,4 @@ RUN uv sync --frozen
 
 COPY . .
 
-CMD ["uv", "run", "main.py"]
+CMD ["sh", "docker/entrypoint.sh"]
