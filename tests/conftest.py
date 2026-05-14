@@ -4,11 +4,11 @@ from httpx import AsyncClient, ASGITransport
 from sqlalchemy import text
 from sqlalchemy.pool import NullPool
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-from app.core.limiter import limiter
 
 from app.app import app
 from app.core.config import settings
 from app.core.database import Base, get_db
+from app.core.cache import connect_redis, disconnect_redis
 
 test_engine = create_async_engine(settings.TEST_DATABASE_URL, poolclass=NullPool)
 
@@ -28,11 +28,13 @@ def disable_rate_limit():
 
 @pytest_asyncio.fixture(scope="session", loop_scope="session", autouse=True)
 async def setup_database():
+    await connect_redis()
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
+    await disconnect_redis()
 
 @pytest_asyncio.fixture(autouse=True)
 async def reset_db():

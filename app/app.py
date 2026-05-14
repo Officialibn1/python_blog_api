@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request
+from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 
 from slowapi import _rate_limit_exceeded_handler
@@ -9,6 +10,7 @@ from app.core.config import settings
 from app.core.exceptions import register_exception_handlers
 from app.core.limiter import limiter as rate_limiter
 from app.core.logger import logging_middleware
+from app.core.cache import connect_redis, disconnect_redis
 
 from app.api.v1 import auth
 from app.api.v1 import user
@@ -17,12 +19,18 @@ from app.api.v1 import comments
 from app.api.v1 import tags
 from app.api.v1 import categories
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await connect_redis()
+    yield
+    await disconnect_redis()
 
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    lifespan=lifespan
 )
 
 app.state.limiter = rate_limiter

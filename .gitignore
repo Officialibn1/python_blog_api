@@ -9,3 +9,6 @@ wheels/
 .env.*
 # Virtual environments
 .venv
+
+# Other files
+*_viewer.json

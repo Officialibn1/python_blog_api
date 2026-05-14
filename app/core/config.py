@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     DEBUG: bool
     API_V1_PREFIX: str
     DATABASE_URL: str
+    REDIS_URL: str
     TEST_DATABASE_URL: str
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str
