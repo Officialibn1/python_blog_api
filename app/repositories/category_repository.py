@@ -77,6 +77,11 @@ class TagRepository:
 
         return result.scalar_one_or_none()
 
+    async def get_by_name(self, name: str) -> TagDB | None:
+        query = select(TagDB).where(TagDB.name == name)
+        result = await self.db.execute(query)
+        return result.scalar_one_or_none()
+
     async def get_all(self) -> list[TagDB]:
         result = await self.db.execute(select(TagDB))
 

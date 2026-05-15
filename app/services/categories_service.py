@@ -53,6 +53,10 @@ class TagService:
         self.tag_repo = tag_repo
 
     async def create(self, data: TagCreate) -> TagDB:
+        exist = await self.tag_repo.get_by_name(name=data.name)
+        if exist:
+            raise ConflictException("Tag with this name already exist")
+
         tag = await self.tag_repo.create(
             name=data.name
         )
