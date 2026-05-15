@@ -1,5 +1,5 @@
 import json
-from app.core.exceptions import NotFoundException
+from app.core.exceptions import NotFoundException, ConflictException
 from app.repositories.category_repository import CategoryRepository, TagRepository
 from app.schemas.category import CategoryCreate
 from app.schemas.tag import TagCreate
@@ -14,6 +14,10 @@ class CategoryService:
         self.category_repo = category_repo
 
     async def create_category(self, data: CategoryCreate) -> CategoryDB:
+        exist = await self.category_repo.get_by_name(name=data.name)
+        if exist:
+            raise ConflictException("Category with this name already exists")
+
         category = await self.category_repo.create(
             name=data.name
         )

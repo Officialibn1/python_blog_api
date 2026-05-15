@@ -29,6 +29,11 @@ class CategoryRepository:
         )
         return result.scalar_one_or_none()
 
+    async def get_by_name(self, name: str) -> CategoryDB | None:
+        query = select(CategoryDB).where(CategoryDB.name == name)
+        result = await self.db.execute(query)
+        return result.scalar_one_or_none()
+
     async def get_all(self) -> list[CategoryDB]:
         result = await self.db.execute(
             select(CategoryDB)
