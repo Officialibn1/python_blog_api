@@ -47,6 +47,14 @@ class PostRepository:
         )
         return result.scalar_one_or_none()
 
+    async def verify_slug(self, title: str | None) -> PostDB | None:
+        if not title:
+            return None
+        slug = self._slugify(title)
+        query = select(PostDB).where(PostDB.slug == slug)
+        result = await self.db.execute(query)
+        return result.scalar_one_or_none()
+
     async def get_all(
         self,
         published_only: bool,
@@ -79,6 +87,7 @@ class PostRepository:
             setattr(post, key, value)
 
         post.updated_at = datetime.now(timezone.utc)
+        post.slug = self._slugify(post.title)
 
         await self.db.flush()
         await self.db.refresh(post, ["tags", "category"])

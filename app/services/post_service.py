@@ -2,7 +2,7 @@ from app.repositories.post_repository import PostRepository
 from app.repositories.category_repository import CategoryRepository, TagRepository
 from app.schemas.post import PostCreate, PostUpdate
 from app.models.db import PostDB
-from app.core.exceptions import NotFoundException, AuthorizationException
+from app.core.exceptions import ConflictException, NotFoundException, AuthorizationException
 
 class PostService:
     def __init__(
@@ -16,6 +16,10 @@ class PostService:
         self.tag_repo = tag_repo
 
     async def create_post(self, data: PostCreate, current_user: dict) -> PostDB:
+        exist = await self.post_repo.verify_slug(data.title)
+        if exist:
+            raise ConflictException("Blog with this title already exists")
+
         if not await self.category_repo.get_by_id(data.category_id):
             raise NotFoundException(f"Category with this id {data.category_id} not found")
 
@@ -54,6 +58,10 @@ class PostService:
         return result
 
     async def update_post(self, post_id: int, data: PostUpdate, current_user: dict) -> PostDB:
+        post_exist = await self.post_repo.verify_slug(title=data.title)
+        if post_exist and post_exist.id != post_id:
+            raise ConflictException("A blog with this title already exist")
+
         post = await self.get_post(post_id)
         if post.author_id is None or post.author_id != current_user["id"]:
             raise AuthorizationException("You do not have permission to modify this post")
