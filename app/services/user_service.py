@@ -12,7 +12,11 @@ class UserService:
     async def register(self, user: UserCreate) -> UserDB:
         user_exists = await self.user_repo.get_by_email(email=user.email)
         if user_exists:
-            raise ConflictException("Email already used.")
+            raise ConflictException("Email already used!")
+
+        username_exists = await self.user_repo.get_by_username(username=user.username)
+        if username_exists:
+            raise ConflictException("Username already taken!")
 
         hashed_password = hash_password(user.password)
 

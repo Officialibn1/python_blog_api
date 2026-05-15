@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from sqlalchemy import select, func, update
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import NotFoundException
 from app.models.db import UserDB
@@ -37,6 +37,13 @@ class UserRepository:
     async def get_by_email(self, email: str) -> UserDB | None:
         """Fetching a single user from the database using the email"""
         query = select(UserDB).where(UserDB.email == email)
+        result = await self.db.execute(query)
+
+        return result.scalar_one_or_none()
+
+    async def get_by_username(self, username: str) -> UserDB | None:
+        """Fetch a single user form the database using the username"""
+        query = select(UserDB).where(UserDB.username == username)
         result = await self.db.execute(query)
 
         return result.scalar_one_or_none()
