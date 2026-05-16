@@ -25,6 +25,21 @@ class CommentRepository:
         result = await self.db.execute(select(CommentDB).where(CommentDB.post_id == post_id))
         return list(result.scalars().all())
 
+    async def get_by_id(self, comment_id: int) -> CommentDB | None:
+        query = select(CommentDB).where(CommentDB.id == comment_id)
+        result = await self.db.execute(query)
+        return result.scalar_one_or_none()
+
+    async def edit_comment(self, comment_id: int, body: str) -> CommentDB:
+        comment = await self.get_by_id(comment_id)
+        if not comment:
+            raise NotFoundException("Comment not found")
+
+        comment.body = body
+        await self.db.flush()
+        await self.db.refresh(comment)
+        return comment
+
     async def delete(self, comment_id: int) -> bool:
         result = await self.db.execute(select(CommentDB).where(CommentDB.id == comment_id))
         comment = result.scalar_one_or_none()
