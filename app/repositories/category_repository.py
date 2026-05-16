@@ -14,6 +14,10 @@ class CategoryRepository:
         return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
 
     async def create(self, name: str) -> CategoryDB:
+        exist = await self.get_by_name(name)
+        if exist:
+            raise ConflictException("Category with this name already exists")
+
         category = CategoryDB(
             name=name,
             slug=self._sluggify(name)
@@ -22,6 +26,23 @@ class CategoryRepository:
         await self.db.flush()
         await self.db.refresh(category)
         return category
+
+    async def update(self, category_id: int, name: str) -> CategoryDB:
+        category = await self.get_by_id(category_id)
+        if not category:
+            raise NotFoundException("Category with this id does not exist")
+
+        check = await self.get_by_name(name)
+        if check:
+            raise ConflictException("Category with this name already exist")
+
+        category.name = name
+        category.slug = self._sluggify(name)
+
+        await self.db.flush()
+        await self.db.refresh(category)
+        return category
+
 
     async def get_by_id(self, category_id: int) -> CategoryDB | None:
         result = await self.db.execute(
@@ -62,12 +83,31 @@ class TagRepository:
         return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
 
     async def create(self, name: str) -> TagDB:
+        exist = await self.get_by_name(name)
+        if exist:
+            raise ConflictException("Tag with this name already exist")
+
         tag = TagDB(
             name=name,
             slug=self._sluggify(name)
         )
 
         self.db.add(tag)
+        await self.db.flush()
+        await self.db.refresh(tag)
+        return tag
+
+    async def update(self, tag_id: int, name: str) -> TagDB:
+        tag = await self.get_by_id(tag_id)
+        if not tag:
+            raise NotFoundException("Tag not found")
+
+        check = await self.get_by_name(name)
+        if check:
+            raise ConflictException("Tag with this name already exist")
+
+        tag.name = name
+        tag.slug = self._sluggify(name)
         await self.db.flush()
         await self.db.refresh(tag)
         return tag

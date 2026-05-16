@@ -14,6 +14,9 @@ class TagBase(BaseModel):
 class TagCreate(TagBase):
     pass
 
+class TagUpdate(TagBase):
+    pass
+
 class TagResponse(TagBase):
     id: int
     slug: str

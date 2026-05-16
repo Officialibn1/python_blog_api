@@ -1,5 +1,5 @@
 from fastapi import APIRouter, status, Depends
-from app.schemas.category import CategoryCreate, CategoryResponse
+from app.schemas.category import CategoryCreate, CategoryResponse, CategoryUpdate
 from app.services.categories_service import CategoryService
 from app.core.dependencies import get_category_service, require_admin
 
@@ -12,6 +12,15 @@ async def create_category(
     current_user: dict = Depends(require_admin)
 ):
    return await service.create_category(data)
+
+@router.patch("/{category_id}", response_model=CategoryResponse)
+async def update_category(
+    category_id: int,
+    data: CategoryUpdate,
+    service:CategoryService = Depends(get_category_service),
+    current_user: dict = Depends(require_admin)
+):
+    return await service.update_category(category_id, data)
 
 @router.get("/", response_model=list[CategoryResponse])
 async def get_categories(service: CategoryService = Depends(get_category_service)):

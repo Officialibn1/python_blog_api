@@ -1,8 +1,8 @@
 import json
-from app.core.exceptions import NotFoundException, ConflictException
+from app.core.exceptions import NotFoundException
 from app.repositories.category_repository import CategoryRepository, TagRepository
-from app.schemas.category import CategoryCreate
-from app.schemas.tag import TagCreate
+from app.schemas.category import CategoryCreate, CategoryUpdate
+from app.schemas.tag import TagCreate, TagUpdate
 from app.models.db import CategoryDB, TagDB
 from app.core.cache import cache_get, cache_set, cache_delete
 
@@ -14,13 +14,14 @@ class CategoryService:
         self.category_repo = category_repo
 
     async def create_category(self, data: CategoryCreate) -> CategoryDB:
-        exist = await self.category_repo.get_by_name(name=data.name)
-        if exist:
-            raise ConflictException("Category with this name already exists")
-
         category = await self.category_repo.create(
             name=data.name
         )
+        await cache_delete(CATEGORIES_CACHE_KEY)
+        return category
+
+    async def update_category(self, category_id: int, data: CategoryUpdate) -> CategoryDB:
+        category = await self.category_repo.update(category_id, name=data.name)
         await cache_delete(CATEGORIES_CACHE_KEY)
         return category
 
@@ -53,13 +54,14 @@ class TagService:
         self.tag_repo = tag_repo
 
     async def create(self, data: TagCreate) -> TagDB:
-        exist = await self.tag_repo.get_by_name(name=data.name)
-        if exist:
-            raise ConflictException("Tag with this name already exist")
-
         tag = await self.tag_repo.create(
             name=data.name
         )
+        await cache_delete(TAGS_CACHE_KEY)
+        return tag
+
+    async def update_tag(self, tag_id: int, data: TagUpdate) -> TagDB:
+        tag = await self.tag_repo.update(tag_id, name=data.name)
         await cache_delete(TAGS_CACHE_KEY)
         return tag
 
