@@ -58,9 +58,7 @@ class PostService:
         published_only: bool = True
     ) -> tuple[list[PostDB], int]:
         skip = (page - 1) * size
-        result = await self.post_repo.get_all(published_only=published_only, skip=skip, limit=size)
-
-        return result
+        return await self.post_repo.get_all(published_only=published_only, skip=skip, limit=size)
 
     async def list_authors_posts(
         self,

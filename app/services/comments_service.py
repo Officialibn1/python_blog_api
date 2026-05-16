@@ -16,8 +16,14 @@ class CommentService:
 
         return comment
 
-    async def get_post_comments(self, post_id: int) -> list[CommentDB]:
-        return await self.comment_repo.get_by_post(post_id)
+    async def get_post_comments(
+        self,
+        post_id: int,
+        page: int = 1,
+        size: int = 10
+    ) -> tuple[list[CommentDB], int]:
+        skip = (page - 1) * size
+        return await self.comment_repo.get_by_post(post_id, skip=skip, limit=size)
 
     async def get_comment(self, comment_id: int) -> CommentDB:
         comment = await self.comment_repo.get_by_id(comment_id)

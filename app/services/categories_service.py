@@ -37,7 +37,6 @@ class CategoryService:
         if cached:
             return json.loads(cached)
 
-
         categories =  await self.category_repo.get_all()
         serialized = json.dumps([
             {"id": c.id, "name": c.name, "slug": c.slug, "created_at": c.created_at.isoformat()} for c in categories

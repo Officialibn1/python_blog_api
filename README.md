@@ -161,6 +161,11 @@ JWT_SECRET_KEY=<your-secret-key>
 JWT_ALGORITHM=HS256
 JWT_ACCESS_TOKEN_EXPIRY_MINUTES=15
 JWT_REFRESH_TOKEN_EXPIRY_DAYS=7
+
+# SEED CREDENTIALS
+ADMIN_EMAIL=
+ADMIN_USERNAME=
+ADMIN_PASSWORD=
 ```
 
 ### 3. Start all services
@@ -232,7 +237,7 @@ The following features are missing and would be natural next additions:
 - [ ] **Password reset flow** — no forgot-password or reset-password endpoints exist.
 - [ ] **Email verification** — users are active immediately after registration with no email confirmation step.
 - [ ] **Post search and filtering** — posts can only be filtered by `published` status. There is no search by title, author, category, or tag.
-- [ ] **Pagination on comments** — comments are returned as a flat list with no pagination.
+- [x] **Pagination on comments** — comments are returned as a flat list with no pagination.
 - [x] **Update/edit comments** — there is no `PUT`/`PATCH` endpoint for comments.
 - [x] **Category and tag update** — there are no `PUT`/`PATCH` endpoints for categories or tags.
 - [x] **Author profile / public posts by user** — no endpoint to fetch all posts by a specific author.

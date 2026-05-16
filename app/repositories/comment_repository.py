@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundException
@@ -21,9 +21,18 @@ class CommentRepository:
 
         return comment
 
-    async def get_by_post(self, post_id: int) -> list[CommentDB]:
-        result = await self.db.execute(select(CommentDB).where(CommentDB.post_id == post_id))
-        return list(result.scalars().all())
+    async def get_by_post(
+        self,
+        post_id: int,
+        skip: int,
+        limit: int
+    ) -> tuple[list[CommentDB], int]:
+        query = select(CommentDB).where(CommentDB.post_id == post_id)
+        count = await self.db.execute(select(func.count()).select_from(query.subquery()))
+        total = count.scalar_one()
+
+        result = await self.db.execute(query.offset(skip).limit(limit))
+        return list(result.scalars().all()), total
 
     async def get_by_id(self, comment_id: int) -> CommentDB | None:
         query = select(CommentDB).where(CommentDB.id == comment_id)
