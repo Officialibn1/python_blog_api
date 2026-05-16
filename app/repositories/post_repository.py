@@ -58,6 +58,7 @@ class PostRepository:
     async def get_all(
         self,
         published_only: bool,
+        author_id: int | None = None,
         skip: int = 0,
         limit: int = 10,
     ) -> tuple[list[PostDB], int]:
@@ -65,6 +66,9 @@ class PostRepository:
 
         if published_only:
             query = query.where(PostDB.published == True)
+
+        if author_id:
+            query = query.where(PostDB.author_id == author_id)
 
         count_result = await self.db.execute(
             select(func.count()).select_from(query.subquery())

@@ -235,8 +235,8 @@ The following features are missing and would be natural next additions:
 - [ ] **Pagination on comments** — comments are returned as a flat list with no pagination.
 - [x] **Update/edit comments** — there is no `PUT`/`PATCH` endpoint for comments.
 - [x] **Category and tag update** — there are no `PUT`/`PATCH` endpoints for categories or tags.
-- [ ] **Author profile / public posts by user** — no endpoint to fetch all posts by a specific author.
+- [x] **Author profile / public posts by user** — no endpoint to fetch all posts by a specific author.
 - [ ] **Post caching** — individual posts and post lists are not cached, unlike categories and tags.
-- [ ] **Admin role assignment** — there is no endpoint to promote a user to `admin` or `author`; the role must be set directly in the database.
+- [x] **Admin role assignment** — there is no endpoint to promote a user to `admin` or `author`; the role must be set directly in the database.
 - [ ] **File/image uploads** — no support for post cover images or user avatars.
-- [ ] **`.env.example` file** — there is no example env file for new contributors.
+- [x] **`.env.example` file** — there is no example env file for new contributors.
