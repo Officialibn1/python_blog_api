@@ -86,6 +86,14 @@ class UserRepository:
 
         return user
 
+    async def update_password(self, user_id: int, hashed_password: str) -> None:
+        user = await self.get_by_id(user_id)
+        if not user:
+            raise NotFoundException("User not found")
+
+        user.hashed_password = hashed_password
+        await self.db.flush()
+
     async def delete(self, user_id: int) -> None:
         user = await self.get_by_id(user_id)
         if not user:

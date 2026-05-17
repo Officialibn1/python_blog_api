@@ -12,6 +12,13 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str
     JWT_ACCESS_TOKEN_EXPIRY_MINUTES: int
     JWT_REFRESH_TOKEN_EXPIRY_DAYS: int
+    JWT_RESET_PASSWORD_TOKEN_EXPIRY_MINUTES: int
+    MAIL_HOST: str
+    MAIL_PORT: int
+    MAIL_USERNAME: str
+    MAIL_PASSWORD: str
+    MAIL_FROM: str
+    APP_URL: str
 
     model_config = SettingsConfigDict(
         env_file=".env",

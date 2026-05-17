@@ -35,6 +35,13 @@ class UserService:
 
         return user
 
+    async def get_user_by_email(self, email: str) -> UserDB:
+        user = await self.user_repo.get_by_email(email)
+        if not user:
+            raise NotFoundException("User not found")
+
+        return user
+
     async def get_users(self, page: int = 1, size: int = 10) -> tuple[list[UserDB], int]:
         skip = (page - 1) * size
         users, total = await self.user_repo.get_all(skip=skip, limit=size)
@@ -43,6 +50,11 @@ class UserService:
     async def update_user(self, user_id: int, data: AdminUpdateUser | UserUpdateUser) -> UserDB:
         user_dict = data.model_dump()
         return await self.user_repo.update(user_id, **user_dict)
+
+    async def update_user_password(self, user_id: int, new_password: str) -> None:
+        hashed_password = hash_password(password=new_password)
+        await self.user_repo.update_password(user_id, hashed_password)
+
 
     async def authenticate(self, email: str, password: str) -> UserDB:
         user = await self.user_repo.get_by_email(email)

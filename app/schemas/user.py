@@ -37,3 +37,16 @@ class TokenResponse(BaseModel):
 class LogoutResponse(BaseModel):
     success: bool
     message: str
+
+class ForgotPassword(BaseModel):
+    email: EmailStr
+
+class ForgotPasswordResponse(LogoutResponse):
+    pass
+
+class ResetPassword(BaseModel):
+    token: NonBlankString
+    new_password: PasswordString
+
+class ResetPasswordResponse(LogoutResponse):
+    pass

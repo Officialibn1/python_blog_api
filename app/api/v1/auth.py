@@ -1,12 +1,15 @@
+import json
+import secrets
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, Request, Response, status, Cookie
 from app.core.dependencies import get_current_user, get_user_service
-from app.core.exceptions import AuthenticationException
+from app.core.exceptions import AuthenticationException, NotFoundException
 from app.services.user_service import UserService
-from app.schemas.user import LogoutResponse, UserCreate, UserResponse, TokenResponse, UserLogin
+from app.schemas.user import LogoutResponse, UserCreate, UserResponse, TokenResponse, UserLogin, ForgotPassword, ForgotPasswordResponse, ResetPassword, ResetPasswordResponse
 from app.core.security import create_jwt_token, decode_jwt_token, TokenType
 from app.core.limiter import limiter
-from app.core.cache import blacklist_token, is_token_blacklisted
+from app.core.cache import blacklist_token, cache_delete, is_token_blacklisted, set_reset_token, get_reset_email
+from app.core.email import send_reset_password_email
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -103,4 +106,53 @@ async def logout(
     return {
         "success": True,
         "message": "Logged out successfully"
+    }
+
+@router.post("/forgot-password", response_model=ForgotPasswordResponse)
+@limiter.limit(limit_value="5/minute", per_method=True, error_message="Too many requests")
+async def forgot_password(
+    request: Request,
+    data: ForgotPassword,
+    service: UserService = Depends(get_user_service)
+):
+    try:
+        user = await service.get_user_by_email(email=data.email)
+        ttl = 600
+        token = secrets.token_urlsafe(32)
+        print("User Email: ", user.email)
+        await set_reset_token(token, email=user.email, ttl=ttl)
+        await send_reset_password_email(to=user.email, token=token)
+    except NotFoundException:
+        pass
+
+    return {
+        "success": True,
+        "message": "You'll receive an email with the reset password link if this email exists in our system"
+    }
+
+@router.post("/reset-password", response_model=ResetPasswordResponse)
+@limiter.limit(limit_value="5/minute", per_method=True, error_message="Too many requests")
+async def reset_password(
+    request: Request,
+    data: ResetPassword,
+    service: UserService = Depends(get_user_service)
+):
+    email = await get_reset_email(data.token)
+    if not email:
+        raise AuthenticationException("Invalid or expired token")
+
+    print("=" * 80)
+    print("Email: ", email)
+    print(type(email))
+
+    try:
+        user = await service.get_user_by_email(email)
+        await service.update_user_password(user_id=user.id, new_password=data.new_password)
+    except NotFoundException:
+        raise AuthenticationException("Invalid or expired token")
+
+    await cache_delete(f"reset_token:{data.token}")
+    return {
+        "success": True,
+        "message": "Your password have been successfully changed."
     }
