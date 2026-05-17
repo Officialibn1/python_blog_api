@@ -4,7 +4,7 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import NotFoundException
-from app.models.db import PostDB
+from app.models.db import PostDB, TagDB
 
 class PostRepository:
     def __init__(self, db: AsyncSession) -> None:
@@ -59,6 +59,9 @@ class PostRepository:
         self,
         published_only: bool,
         author_id: int | None = None,
+        search_term: str | None = None,
+        category_id: int | None = None,
+        tag_id: int | None = None,
         skip: int = 0,
         limit: int = 10,
     ) -> tuple[list[PostDB], int]:
@@ -69,6 +72,15 @@ class PostRepository:
 
         if author_id:
             query = query.where(PostDB.author_id == author_id)
+
+        if search_term:
+            query = query.where(PostDB.title.ilike(f"%{search_term}%"))
+
+        if category_id:
+            query = query.where(PostDB.category_id == category_id)
+
+        if tag_id:
+            query = query.where(PostDB.tags.any(TagDB.id == tag_id))
 
         count_result = await self.db.execute(
             select(func.count()).select_from(query.subquery())

@@ -55,24 +55,40 @@ class PostService:
         self,
         page: int,
         size: int,
+        author_id: int | None = None,
+        search_term: str | None = None,
+        category_id: int | None = None,
+        tag_id: int | None = None,
         published_only: bool = True
     ) -> tuple[list[PostDB], int]:
         skip = (page - 1) * size
-        return await self.post_repo.get_all(published_only=published_only, skip=skip, limit=size)
+        return await self.post_repo.get_all(
+            published_only=published_only,
+            skip=skip,
+            limit=size,
+            author_id=author_id,
+            search_term=search_term,
+            category_id=category_id,
+            tag_id=tag_id
+        )
 
     async def list_authors_posts(
         self,
         author_id: int,
         page: int,
         size: int,
+        current_user: dict,
         published_only: bool = True,
-        current_user: dict | None = None
     ) -> tuple[list[PostDB], int]:
+        # is_owner = current_user["id"] == author_id
+        # is_admin = current_user["role"] == "admin"
+        # if not (is_admin or is_owner):
+        #     published_only = True
+
         if current_user and current_user["id"] != author_id:
             raise AuthorizationException("You do not have permisison to view this author's post")
-
         skip = (page - 1) * size
-        return await self.post_repo.get_all(published_only, author_id, skip, limit=size)
+        return await self.post_repo.get_all(published_only, author_id, skip=skip, limit=size)
 
     async def update_post(self, post_id: int, data: PostUpdate, current_user: dict) -> PostDB:
         post_exist = await self.post_repo.verify_slug(title=data.title)

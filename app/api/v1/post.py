@@ -10,43 +10,13 @@ router = APIRouter(prefix="/posts", tags=["Posts"])
 async def get_posts(
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Total items per page"),
+    search_term: str | None = Query(None, description="Query search term"),
+    author_id: int | None = Query(None),
+    category_id: int | None = Query(None),
+    tag_id: int | None = Query(None),
     service: PostService = Depends(get_post_service)
 ):
-    posts, total = await service.list_posts(page=page, size=size)
-    return PaginatedResponse(
-        items=posts,
-        total=total,
-        page=page,
-        size=size,
-        pages=-(-total // size)
-    )
-
-@router.get("/{author_id}", response_model=PaginatedResponse[PostResponse])
-async def get_authors_posts(
-    author_id: int,
-    page: int = Query(1, ge=1, description="Page number"),
-    size: int = Query(10, ge=1, le=100, description="Total items per page"),
-    published_only: bool = Query(False, description="Show only published posts"),
-    service: PostService = Depends(get_post_service),
-    current_user: dict = Depends(get_current_user)
-):
-    posts, total = await service.list_authors_posts(author_id, page, size, published_only, current_user)
-    return PaginatedResponse(
-        items=posts,
-        total=total,
-        page=page,
-        size=size,
-        pages=-(-total // size)
-    )
-
-@router.get("/public_posts/author/{author_id}", response_model=PaginatedResponse[PostResponse])
-async def get_public_authors_posts(
-    author_id: int,
-    page: int = Query(1, ge=1, description="Page number"),
-    size: int = Query(10, ge=1, le=100, description="Total items per page"),
-    service: PostService = Depends(get_post_service),
-):
-    posts, total = await service.list_authors_posts(author_id, page, size)
+    posts, total = await service.list_posts(page, size, author_id, search_term, category_id, tag_id)
     return PaginatedResponse(
         items=posts,
         total=total,

@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Query, Depends, Request
-from app.core.dependencies import get_user_service
+from app.core.dependencies import get_post_service, get_user_service
+from app.schemas.post import PostResponse
+from app.services.post_service import PostService
 from app.services.user_service import UserService
 from app.core.dependencies import require_admin, get_current_user
 from app.schemas.user import UserResponse, AdminUpdateUser, UserUpdateUser
@@ -76,3 +78,21 @@ async def activate_or_deactivate_user(
     current_user: dict = Depends(require_admin)
 ):
     return await service.toggle_user_active_status(user_id)
+
+@router.get("/{author_id}/posts", response_model=PaginatedResponse[PostResponse])
+async def get_authors_posts(
+    author_id: int,
+    page: int = Query(1, ge=1, description="Page number"),
+    size: int = Query(10, ge=1, le=100, description="Total items per page"),
+    published_only: bool = Query(False, description="Show only published posts"),
+    service: PostService = Depends(get_post_service),
+    current_user: dict = Depends(get_current_user)
+):
+    posts, total = await service.list_authors_posts(author_id, page, size, current_user, published_only)
+    return PaginatedResponse(
+        items=posts,
+        total=total,
+        page=page,
+        size=size,
+        pages=-(-total // size)
+    )
