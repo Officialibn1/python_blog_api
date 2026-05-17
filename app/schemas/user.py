@@ -33,3 +33,7 @@ class UserResponse(UserBase):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+class LogoutResponse(BaseModel):
+    success: bool
+    message: str

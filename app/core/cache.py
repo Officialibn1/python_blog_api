@@ -38,3 +38,10 @@ async def cache_delete(key: str) -> None:
         raise RedisError("Redis instance not initialized")
 
     await redis.delete(key)
+
+async def blacklist_token(jti: str, ttl: int) -> None:
+    """Stores a tokens jti in redis blacklist with the TTL matching the token expiry time."""
+    await cache_set(f"blacklist:{jti}", "1", ttl=ttl)
+
+async def is_token_blacklisted(jti: str) -> bool:
+    return await cache_get(f"blacklist:{jti}") is not None

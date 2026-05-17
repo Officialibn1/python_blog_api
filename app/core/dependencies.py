@@ -1,5 +1,5 @@
 from fastapi import Depends
-from fastapi.security import OAuth2PasswordBearer, HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.security import decode_jwt_token
@@ -12,8 +12,8 @@ from app.services.comments_service import CommentService
 from app.services.post_service import PostService
 from app.services.user_service import UserService
 from app.core.exceptions import AuthenticationException, AuthorizationException
+from app.core.cache import is_token_blacklisted
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 bearer_scheme = HTTPBearer()
 
 # Singletons - To maintain one instance for the applications lifecycle
@@ -62,6 +62,10 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(b
     data = decode_jwt_token(token)
     if data.get("token_type") != "access":
         raise AuthenticationException("Invalid token type")
+
+    jti = data.get("jti")
+    if jti and await is_token_blacklisted(jti):
+        raise AuthenticationException("Token has been revoked, please authenticate again")
 
     return data
 
